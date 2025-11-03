@@ -1,0 +1,150 @@
+#root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.app {
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  color: #888;
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+.input-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.game-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #646cff;
+  border-radius: 8px;
+  background-color: transparent;
+  color: inherit;
+  outline: none;
+  transition: border-color 0.25s;
+}
+
+.game-input:focus {
+  border-color: #535bf2;
+}
+
+.game-input::placeholder {
+  color: #888;
+}
+
+.add-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: #646cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+
+.add-button:hover {
+  background-color: #535bf2;
+}
+
+.games-list {
+  margin-bottom: 2rem;
+}
+
+.empty-message {
+  color: #888;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.game-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.game-item:hover {
+  background-color: #2a2a2a;
+  transform: translateX(5px);
+}
+
+.game-item.completed {
+  opacity: 0.6;
+}
+
+.game-item.completed .game-title {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.game-checkbox {
+  width: 1.2rem;
+  height: 1.2rem;
+  cursor: pointer;
+  accent-color: #646cff;
+}
+
+.game-title {
+  flex: 1;
+  font-size: 1.1rem;
+}
+
+.delete-button {
+  padding: 0.4rem 0.8rem;
+  font-size: 1rem;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+
+.delete-button:hover {
+  background-color: #b71c1c;
+}
+
+.stats {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #333;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: light) {
+  .game-item {
+    background-color: #f5f5f5;
+  }
+  
+  .game-item:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .game-input {
+    border-color: #646cff;
+  }
+  
+  .stats {
+    border-top-color: #ddd;
+  }
+}
