@@ -50,7 +50,7 @@ function App() {
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder="Add a new game..."
           className="game-input"
         />
