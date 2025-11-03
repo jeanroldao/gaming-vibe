@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { uuidv7 } from 'uuidv7'
 import './App.css'
 
 interface Game {
-  id: number
+  id: string
   title: string
   completed: boolean
 }
@@ -15,7 +16,7 @@ function App() {
     if (inputValue.trim() === '') return
     
     const newGame: Game = {
-      id: Date.now(),
+      id: uuidv7(),
       title: inputValue,
       completed: false
     }
@@ -24,13 +25,13 @@ function App() {
     setInputValue('')
   }
 
-  const toggleGame = (id: number) => {
+  const toggleGame = (id: string) => {
     setGames(games.map(game => 
       game.id === id ? { ...game, completed: !game.completed } : game
     ))
   }
 
-  const deleteGame = (id: number) => {
+  const deleteGame = (id: string) => {
     setGames(games.filter(game => game.id !== id))
   }
 
