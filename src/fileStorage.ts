@@ -1,8 +1,4 @@
-interface Game {
-  id: string
-  title: string
-  completed: boolean
-}
+import type { Game } from './types'
 
 // Type definitions for File System Access API
 interface FileSystemFileHandle {
@@ -77,7 +73,28 @@ export const loadGamesFromFile = async (): Promise<Game[] | null> => {
       return []
     }
     
-    const games = JSON.parse(content) as Game[]
+    const parsed = JSON.parse(content)
+    
+    // Validate that the parsed data is an array of games
+    if (!Array.isArray(parsed)) {
+      throw new Error('Invalid file format: expected an array of games')
+    }
+    
+    // Validate each game object has the required properties
+    const games = parsed.filter((item): item is Game => {
+      return (
+        typeof item === 'object' &&
+        item !== null &&
+        typeof item.id === 'string' &&
+        typeof item.title === 'string' &&
+        typeof item.completed === 'boolean'
+      )
+    })
+    
+    if (games.length !== parsed.length) {
+      console.warn('Some items in the file were invalid and were filtered out')
+    }
+    
     return games
   } catch (error) {
     if ((error as Error).name === 'AbortError') {

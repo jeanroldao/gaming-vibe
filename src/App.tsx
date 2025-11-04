@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { uuidv7 } from 'uuidv7'
 import './App.css'
+import type { Game } from './types'
 import { 
   loadGamesFromFile, 
   saveGamesToFile, 
@@ -8,26 +9,36 @@ import {
   hasOpenFile
 } from './fileStorage'
 
-interface Game {
-  id: string
-  title: string
-  completed: boolean
-}
-
 function App() {
   const [games, setGames] = useState<Game[]>([])
   const [inputValue, setInputValue] = useState('')
   const [fileSupported, setFileSupported] = useState(false)
+  const saveTimeoutRef = useRef<number | null>(null)
 
   // Check File System Access API support on mount
   useEffect(() => {
     setFileSupported(isFileSystemAccessSupported())
   }, [])
 
-  // Auto-save games when they change
+  // Auto-save games when they change (with debouncing)
   useEffect(() => {
-    if (hasOpenFile() && games.length >= 0) {
-      saveGamesToFile(games)
+    if (hasOpenFile()) {
+      // Clear any existing timeout
+      if (saveTimeoutRef.current !== null) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+      
+      // Set a new timeout to save after 500ms of inactivity
+      saveTimeoutRef.current = window.setTimeout(() => {
+        saveGamesToFile(games)
+      }, 500)
+    }
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current !== null) {
+        clearTimeout(saveTimeoutRef.current)
+      }
     }
   }, [games])
 
