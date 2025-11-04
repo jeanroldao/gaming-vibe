@@ -128,6 +128,33 @@ const clearFileHandleFromDB = async (): Promise<void> => {
 }
 
 /**
+ * Validate games data
+ */
+const validateGamesData = (parsed: unknown): Game[] => {
+  // Validate that the parsed data is an array of games
+  if (!Array.isArray(parsed)) {
+    throw new Error('Invalid file format: expected an array of games')
+  }
+  
+  // Validate each game object has the required properties
+  const games = parsed.filter((item): item is Game => {
+    return (
+      typeof item === 'object' &&
+      item !== null &&
+      typeof item.id === 'string' &&
+      typeof item.title === 'string' &&
+      typeof item.completed === 'boolean'
+    )
+  })
+  
+  if (games.length !== parsed.length) {
+    console.warn('Some items in the file were invalid and were filtered out')
+  }
+  
+  return games
+}
+
+/**
  * Check if File System Access API is supported
  */
 export const isFileSystemAccessSupported = (): boolean => {
@@ -159,26 +186,7 @@ export const loadGamesFromFile = async (): Promise<Game[] | null> => {
     }
     
     const parsed = JSON.parse(content)
-    
-    // Validate that the parsed data is an array of games
-    if (!Array.isArray(parsed)) {
-      throw new Error('Invalid file format: expected an array of games')
-    }
-    
-    // Validate each game object has the required properties
-    const games = parsed.filter((item): item is Game => {
-      return (
-        typeof item === 'object' &&
-        item !== null &&
-        typeof item.id === 'string' &&
-        typeof item.title === 'string' &&
-        typeof item.completed === 'boolean'
-      )
-    })
-    
-    if (games.length !== parsed.length) {
-      console.warn('Some items in the file were invalid and were filtered out')
-    }
+    const games = validateGamesData(parsed)
     
     return games
   } catch (error) {
@@ -320,26 +328,7 @@ export const loadLastOpenedFile = async (): Promise<Game[] | null> => {
     }
     
     const parsed = JSON.parse(content)
-    
-    // Validate that the parsed data is an array of games
-    if (!Array.isArray(parsed)) {
-      throw new Error('Invalid file format: expected an array of games')
-    }
-    
-    // Validate each game object has the required properties
-    const games = parsed.filter((item): item is Game => {
-      return (
-        typeof item === 'object' &&
-        item !== null &&
-        typeof item.id === 'string' &&
-        typeof item.title === 'string' &&
-        typeof item.completed === 'boolean'
-      )
-    })
-    
-    if (games.length !== parsed.length) {
-      console.warn('Some items in the file were invalid and were filtered out')
-    }
+    const games = validateGamesData(parsed)
     
     return games
   } catch (error) {

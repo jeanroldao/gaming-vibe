@@ -18,6 +18,12 @@ function App() {
   const [currentFileName, setCurrentFileName] = useState<string | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
 
+  // Helper function to update the file name display
+  const updateFileNameDisplay = async () => {
+    const fileName = await getCurrentFileName()
+    setCurrentFileName(fileName)
+  }
+
   // Check File System Access API support on mount
   useEffect(() => {
     const initialize = async () => {
@@ -29,9 +35,7 @@ function App() {
         const loadedGames = await loadLastOpenedFile()
         if (loadedGames !== null) {
           setGames(loadedGames)
-          // Update the file name display
-          const fileName = await getCurrentFileName()
-          setCurrentFileName(fileName)
+          await updateFileNameDisplay()
         }
       }
     }
@@ -65,18 +69,14 @@ function App() {
     const loadedGames = await loadGamesFromFile()
     if (loadedGames !== null) {
       setGames(loadedGames)
-      // Update the file name display
-      const fileName = await getCurrentFileName()
-      setCurrentFileName(fileName)
+      await updateFileNameDisplay()
     }
   }
 
   const handleSaveFile = async () => {
     const success = await saveGamesToFile(games)
     if (success) {
-      // Update the file name display
-      const fileName = await getCurrentFileName()
-      setCurrentFileName(fileName)
+      await updateFileNameDisplay()
     }
   }
 
