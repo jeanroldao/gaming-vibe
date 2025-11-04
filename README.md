@@ -2,6 +2,10 @@
 
 A simple TypeScript React application for managing your game collection.
 
+## 🚀 [Live Demo](https://jeanroldao.github.io/gaming-vibe/)
+
+Check out the live preview of the application in action!
+
 ## Features
 
 - ✨ Add games to your collection
