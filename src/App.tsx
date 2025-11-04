@@ -52,8 +52,11 @@ function App() {
       }
       
       // Set a new timeout to save after 500ms of inactivity
-      saveTimeoutRef.current = window.setTimeout(() => {
-        saveGamesToFile(games)
+      saveTimeoutRef.current = window.setTimeout(async () => {
+        const success = await saveGamesToFile(games)
+        if (success) {
+          await updateFileNameDisplay()
+        }
       }, 500)
     }
     
