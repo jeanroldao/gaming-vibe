@@ -151,7 +151,7 @@ function App() {
         {games.length === 0 ? (
           <p className="empty-message">No games yet. Add your first game above!</p>
         ) : (
-          games.map(game => (
+          [...games].sort((a, b) => Number(a.completed) - Number(b.completed)).map(game => (
             <div key={game.id} className={`game-item ${game.completed ? 'completed' : ''}`}>
               <input
                 type="checkbox"
