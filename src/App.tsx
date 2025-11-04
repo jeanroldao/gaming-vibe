@@ -1,16 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { uuidv7 } from 'uuidv7'
 import './App.css'
-
-interface Game {
-  id: string
-  title: string
-  completed: boolean
-}
+import type { Game } from './types'
+import { 
+  loadGamesFromFile, 
+  saveGamesToFile, 
+  isFileSystemAccessSupported,
+  hasOpenFile
+} from './fileStorage'
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
   const [inputValue, setInputValue] = useState('')
+  const [fileSupported, setFileSupported] = useState(false)
+  const saveTimeoutRef = useRef<number | null>(null)
+
+  // Check File System Access API support on mount
+  useEffect(() => {
+    setFileSupported(isFileSystemAccessSupported())
+  }, [])
+
+  // Auto-save games when they change (with debouncing)
+  useEffect(() => {
+    if (hasOpenFile()) {
+      // Clear any existing timeout
+      if (saveTimeoutRef.current !== null) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+      
+      // Set a new timeout to save after 500ms of inactivity
+      saveTimeoutRef.current = window.setTimeout(() => {
+        saveGamesToFile(games)
+      }, 500)
+    }
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current !== null) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [games])
+
+  const handleLoadFile = async () => {
+    const loadedGames = await loadGamesFromFile()
+    if (loadedGames !== null) {
+      setGames(loadedGames)
+    }
+  }
+
+  const handleSaveFile = async () => {
+    await saveGamesToFile(games)
+  }
 
   const addGame = () => {
     if (inputValue.trim() === '') return
@@ -45,6 +86,17 @@ function App() {
     <div className="app">
       <h1>🎮 Gaming Vibe</h1>
       <p className="subtitle">Manage your game collection</p>
+      
+      {fileSupported && (
+        <div className="file-controls">
+          <button onClick={handleLoadFile} className="file-button">
+            📂 Open File
+          </button>
+          <button onClick={handleSaveFile} className="file-button">
+            💾 Save As
+          </button>
+        </div>
+      )}
       
       <div className="input-container">
         <input
