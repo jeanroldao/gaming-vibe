@@ -6,18 +6,37 @@ import {
   loadGamesFromFile, 
   saveGamesToFile, 
   isFileSystemAccessSupported,
-  hasOpenFile
+  hasOpenFile,
+  getCurrentFileName,
+  loadLastOpenedFile
 } from './fileStorage'
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
   const [inputValue, setInputValue] = useState('')
   const [fileSupported, setFileSupported] = useState(false)
+  const [currentFileName, setCurrentFileName] = useState<string | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
 
   // Check File System Access API support on mount
   useEffect(() => {
-    setFileSupported(isFileSystemAccessSupported())
+    const initialize = async () => {
+      const supported = isFileSystemAccessSupported()
+      setFileSupported(supported)
+      
+      // Try to load the last opened file automatically
+      if (supported) {
+        const loadedGames = await loadLastOpenedFile()
+        if (loadedGames !== null) {
+          setGames(loadedGames)
+          // Update the file name display
+          const fileName = await getCurrentFileName()
+          setCurrentFileName(fileName)
+        }
+      }
+    }
+    
+    initialize()
   }, [])
 
   // Auto-save games when they change (with debouncing)
@@ -46,11 +65,19 @@ function App() {
     const loadedGames = await loadGamesFromFile()
     if (loadedGames !== null) {
       setGames(loadedGames)
+      // Update the file name display
+      const fileName = await getCurrentFileName()
+      setCurrentFileName(fileName)
     }
   }
 
   const handleSaveFile = async () => {
-    await saveGamesToFile(games)
+    const success = await saveGamesToFile(games)
+    if (success) {
+      // Update the file name display
+      const fileName = await getCurrentFileName()
+      setCurrentFileName(fileName)
+    }
   }
 
   const addGame = () => {
@@ -95,6 +122,11 @@ function App() {
           <button onClick={handleSaveFile} className="file-button">
             💾 Save As
           </button>
+          {currentFileName && (
+            <div className="current-file-name">
+              📄 {currentFileName}
+            </div>
+          )}
         </div>
       )}
       
