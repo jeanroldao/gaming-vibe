@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { uuidv7 } from 'uuidv7'
 import './App.css'
+import { 
+  loadGamesFromFile, 
+  saveGamesToFile, 
+  isFileSystemAccessSupported,
+  hasOpenFile
+} from './fileStorage'
 
 interface Game {
   id: string
@@ -11,6 +17,30 @@ interface Game {
 function App() {
   const [games, setGames] = useState<Game[]>([])
   const [inputValue, setInputValue] = useState('')
+  const [fileSupported, setFileSupported] = useState(false)
+
+  // Check File System Access API support on mount
+  useEffect(() => {
+    setFileSupported(isFileSystemAccessSupported())
+  }, [])
+
+  // Auto-save games when they change
+  useEffect(() => {
+    if (hasOpenFile() && games.length >= 0) {
+      saveGamesToFile(games)
+    }
+  }, [games])
+
+  const handleLoadFile = async () => {
+    const loadedGames = await loadGamesFromFile()
+    if (loadedGames !== null) {
+      setGames(loadedGames)
+    }
+  }
+
+  const handleSaveFile = async () => {
+    await saveGamesToFile(games)
+  }
 
   const addGame = () => {
     if (inputValue.trim() === '') return
@@ -45,6 +75,17 @@ function App() {
     <div className="app">
       <h1>🎮 Gaming Vibe</h1>
       <p className="subtitle">Manage your game collection</p>
+      
+      {fileSupported && (
+        <div className="file-controls">
+          <button onClick={handleLoadFile} className="file-button">
+            📂 Open File
+          </button>
+          <button onClick={handleSaveFile} className="file-button">
+            💾 Save As
+          </button>
+        </div>
+      )}
       
       <div className="input-container">
         <input

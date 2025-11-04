@@ -19,6 +19,28 @@ h1 {
   margin-bottom: 2rem;
 }
 
+.file-controls {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.file-button {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  background-color: #646cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+
+.file-button:hover {
+  background-color: #535bf2;
+}
+
 .input-container {
   display: flex;
   gap: 0.5rem;
