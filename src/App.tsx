@@ -6,18 +6,41 @@ import {
   loadGamesFromFile, 
   saveGamesToFile, 
   isFileSystemAccessSupported,
-  hasOpenFile
+  hasOpenFile,
+  getCurrentFileName,
+  loadLastOpenedFile
 } from './fileStorage'
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
   const [inputValue, setInputValue] = useState('')
   const [fileSupported, setFileSupported] = useState(false)
+  const [currentFileName, setCurrentFileName] = useState<string | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
+
+  // Helper function to update the file name display
+  const updateFileNameDisplay = async () => {
+    const fileName = await getCurrentFileName()
+    setCurrentFileName(fileName)
+  }
 
   // Check File System Access API support on mount
   useEffect(() => {
-    setFileSupported(isFileSystemAccessSupported())
+    const initialize = async () => {
+      const supported = isFileSystemAccessSupported()
+      setFileSupported(supported)
+      
+      // Try to load the last opened file automatically
+      if (supported) {
+        const loadedGames = await loadLastOpenedFile()
+        if (loadedGames !== null) {
+          setGames(loadedGames)
+          await updateFileNameDisplay()
+        }
+      }
+    }
+    
+    initialize()
   }, [])
 
   // Auto-save games when they change (with debouncing)
@@ -29,8 +52,11 @@ function App() {
       }
       
       // Set a new timeout to save after 500ms of inactivity
-      saveTimeoutRef.current = window.setTimeout(() => {
-        saveGamesToFile(games)
+      saveTimeoutRef.current = window.setTimeout(async () => {
+        const success = await saveGamesToFile(games)
+        if (success) {
+          await updateFileNameDisplay()
+        }
       }, 500)
     }
     
@@ -46,11 +72,15 @@ function App() {
     const loadedGames = await loadGamesFromFile()
     if (loadedGames !== null) {
       setGames(loadedGames)
+      await updateFileNameDisplay()
     }
   }
 
   const handleSaveFile = async () => {
-    await saveGamesToFile(games)
+    const success = await saveGamesToFile(games)
+    if (success) {
+      await updateFileNameDisplay()
+    }
   }
 
   const addGame = () => {
@@ -95,6 +125,11 @@ function App() {
           <button onClick={handleSaveFile} className="file-button">
             💾 Save As
           </button>
+          {currentFileName && (
+            <div className="current-file-name">
+              📄 {currentFileName}
+            </div>
+          )}
         </div>
       )}
       
