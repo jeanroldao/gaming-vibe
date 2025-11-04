@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { uuidv7 } from 'uuidv7'
 import './App.css'
 import type { Game } from './types'
@@ -17,6 +17,11 @@ function App() {
   const [fileSupported, setFileSupported] = useState(false)
   const [currentFileName, setCurrentFileName] = useState<string | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
+
+  // Sort games to display unfinished games first, finished games last
+  const sortedGames = useMemo(() => {
+    return [...games].sort((a, b) => Number(a.completed) - Number(b.completed))
+  }, [games])
 
   // Helper function to update the file name display
   const updateFileNameDisplay = async () => {
@@ -151,7 +156,7 @@ function App() {
         {games.length === 0 ? (
           <p className="empty-message">No games yet. Add your first game above!</p>
         ) : (
-          [...games].sort((a, b) => Number(a.completed) - Number(b.completed)).map(game => (
+          sortedGames.map(game => (
             <div key={game.id} className={`game-item ${game.completed ? 'completed' : ''}`}>
               <input
                 type="checkbox"
