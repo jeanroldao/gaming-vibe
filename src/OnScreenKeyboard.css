@@ -1,0 +1,129 @@
+.keyboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.keyboard-container {
+  background-color: #1a1a1a;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width: 90%;
+  width: 800px;
+}
+
+.keyboard-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.keyboard-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.keyboard-help {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.keyboard-key {
+  min-width: 3rem;
+  height: 3rem;
+  padding: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background-color: #2a2a2a;
+  color: #fff;
+  border: 2px solid #3a3a3a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keyboard-key:hover {
+  background-color: #3a3a3a;
+  border-color: #646cff;
+  transform: translateY(-2px);
+}
+
+.keyboard-key.selected {
+  background-color: #646cff;
+  border-color: #535bf2;
+  box-shadow: 0 0 20px rgba(100, 108, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.keyboard-key.wide-key {
+  min-width: 8rem;
+  flex: 1;
+}
+
+@media (prefers-color-scheme: light) {
+  .keyboard-container {
+    background-color: #f5f5f5;
+  }
+  
+  .keyboard-header h3 {
+    color: #1a1a1a;
+  }
+  
+  .keyboard-key {
+    background-color: #fff;
+    color: #1a1a1a;
+    border-color: #ddd;
+  }
+  
+  .keyboard-key:hover {
+    background-color: #e8e8e8;
+  }
+  
+  .keyboard-key.selected {
+    background-color: #646cff;
+    color: #fff;
+    border-color: #535bf2;
+  }
+}
+
+@media (max-width: 768px) {
+  .keyboard-container {
+    width: 95%;
+    padding: 1rem;
+  }
+  
+  .keyboard-key {
+    min-width: 2rem;
+    height: 2.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .keyboard-key.wide-key {
+    min-width: 5rem;
+  }
+}
