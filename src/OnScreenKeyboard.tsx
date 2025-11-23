@@ -18,7 +18,6 @@ const KEYBOARD_LAYOUT = [
 ]
 
 const STICK_THRESHOLD = 0.5
-const GAMEPAD_POLL_DELAY = 500 // ms
 
 export const OnScreenKeyboard = ({
   onInput,
@@ -54,54 +53,50 @@ export const OnScreenKeyboard = ({
       const gamepads = navigator.getGamepads()
       const gamepad = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3]
 
-      if (!gamepad) {
-        // If no gamepad, check again after a delay
-        setTimeout(() => requestAnimationFrame(handleGamepad), GAMEPAD_POLL_DELAY)
-        return
-      }
+      if (gamepad) {
+        // D-pad navigation
+        const dpadUp = gamepad.buttons[12]?.pressed || gamepad.axes[1] < -STICK_THRESHOLD
+        const dpadDown = gamepad.buttons[13]?.pressed || gamepad.axes[1] > STICK_THRESHOLD
+        const dpadLeft = gamepad.buttons[14]?.pressed || gamepad.axes[0] < -STICK_THRESHOLD
+        const dpadRight = gamepad.buttons[15]?.pressed || gamepad.axes[0] > STICK_THRESHOLD
 
-      // D-pad navigation
-      const dpadUp = gamepad.buttons[12]?.pressed || gamepad.axes[1] < -STICK_THRESHOLD
-      const dpadDown = gamepad.buttons[13]?.pressed || gamepad.axes[1] > STICK_THRESHOLD
-      const dpadLeft = gamepad.buttons[14]?.pressed || gamepad.axes[0] < -STICK_THRESHOLD
-      const dpadRight = gamepad.buttons[15]?.pressed || gamepad.axes[0] > STICK_THRESHOLD
-
-      if (dpadUp && !lastDpadRef.current.up) {
-        setSelectedRow(prev => Math.max(0, prev - 1))
-      }
-      if (dpadDown && !lastDpadRef.current.down) {
-        setSelectedRow(prev => Math.min(KEYBOARD_LAYOUT.length - 1, prev + 1))
-      }
-      if (dpadLeft && !lastDpadRef.current.left) {
-        setSelectedCol(prev => Math.max(0, prev - 1))
-      }
-      if (dpadRight && !lastDpadRef.current.right) {
-        setSelectedCol(prev => {
-          const maxCol = KEYBOARD_LAYOUT[selectedRow].length - 1
-          return Math.min(maxCol, prev + 1)
-        })
-      }
-
-      lastDpadRef.current = { up: dpadUp, down: dpadDown, left: dpadLeft, right: dpadRight }
-
-      // A button to select
-      const aPressed = gamepad.buttons[0]?.pressed
-      
-      if (aPressed && !lastARef.current) {
-        const key = KEYBOARD_LAYOUT[selectedRow]?.[selectedCol]
-        if (key) {
-          handleKeyPress(key)
+        if (dpadUp && !lastDpadRef.current.up) {
+          setSelectedRow(prev => Math.max(0, prev - 1))
         }
-      }
-      lastARef.current = aPressed
+        if (dpadDown && !lastDpadRef.current.down) {
+          setSelectedRow(prev => Math.min(KEYBOARD_LAYOUT.length - 1, prev + 1))
+        }
+        if (dpadLeft && !lastDpadRef.current.left) {
+          setSelectedCol(prev => Math.max(0, prev - 1))
+        }
+        if (dpadRight && !lastDpadRef.current.right) {
+          setSelectedCol(prev => {
+            const maxCol = KEYBOARD_LAYOUT[selectedRow].length - 1
+            return Math.min(maxCol, prev + 1)
+          })
+        }
 
-      // B button to close
-      const bPressed = gamepad.buttons[1]?.pressed
-      
-      if (bPressed && !lastBRef.current) {
-        onClose()
+        lastDpadRef.current = { up: dpadUp, down: dpadDown, left: dpadLeft, right: dpadRight }
+
+        // A button to select
+        const aPressed = gamepad.buttons[0]?.pressed
+        
+        if (aPressed && !lastARef.current) {
+          const key = KEYBOARD_LAYOUT[selectedRow]?.[selectedCol]
+          if (key) {
+            handleKeyPress(key)
+          }
+        }
+        lastARef.current = aPressed
+
+        // B button to close
+        const bPressed = gamepad.buttons[1]?.pressed
+        
+        if (bPressed && !lastBRef.current) {
+          onClose()
+        }
+        lastBRef.current = bPressed
       }
-      lastBRef.current = bPressed
 
       requestAnimationFrame(handleGamepad)
     }
