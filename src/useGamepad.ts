@@ -35,24 +35,56 @@ export const useGamepad = (config: GamepadConfig) => {
   const animationFrameId = useRef<number | undefined>(undefined)
   const configRef = useRef(config)
   const isMounted = useRef(true)
+  const lastGamepadIndex = useRef<number | null>(null)
 
   // Update config ref whenever config changes
   useEffect(() => {
     configRef.current = config
   }, [config])
 
+  // Reset state when gamepad changes
+  const resetGamepadState = useCallback(() => {
+    lastButtonState.current = []
+    lastAxisState.current = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    }
+  }, [])
+
   const checkGamepad = useCallback(() => {
+    if (!isMounted.current) {
+      return
+    }
+
     const gamepads = navigator.getGamepads()
     const gamepad = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3]
 
     if (!gamepad) {
-      // If no gamepad, check again in 500ms instead of every frame
-      setTimeout(() => {
-        if (isMounted.current) {
-          animationFrameId.current = requestAnimationFrame(checkGamepad)
-        }
-      }, 500)
+      // Reset state when no gamepad is connected
+      if (lastGamepadIndex.current !== null) {
+        lastGamepadIndex.current = null
+        resetGamepadState()
+      }
+      // Continue polling even without a gamepad
+      animationFrameId.current = requestAnimationFrame(checkGamepad)
       return
+    }
+
+    // Find the current gamepad index
+    let currentIndex = -1
+    for (let i = 0; i < gamepads.length; i++) {
+      if (gamepads[i] === gamepad) {
+        currentIndex = i
+        break
+      }
+    }
+    
+    // If gamepad index changed, reset state
+    if (lastGamepadIndex.current !== currentIndex) {
+      lastGamepadIndex.current = currentIndex
+      resetGamepadState()
     }
 
     // Initialize button state array if needed
@@ -120,10 +152,20 @@ export const useGamepad = (config: GamepadConfig) => {
     }
 
     animationFrameId.current = requestAnimationFrame(checkGamepad)
-  }, [])
+  }, [resetGamepadState])
 
   useEffect(() => {
     isMounted.current = true
+    
+    // Handle gamepad connection/disconnection events
+    const handleGamepadEvent = () => {
+      resetGamepadState()
+    }
+    
+    window.addEventListener('gamepadconnected', handleGamepadEvent)
+    window.addEventListener('gamepaddisconnected', handleGamepadEvent)
+    
+    // Start polling
     animationFrameId.current = requestAnimationFrame(checkGamepad)
 
     return () => {
@@ -131,6 +173,8 @@ export const useGamepad = (config: GamepadConfig) => {
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
       }
+      window.removeEventListener('gamepadconnected', handleGamepadEvent)
+      window.removeEventListener('gamepaddisconnected', handleGamepadEvent)
     }
-  }, [checkGamepad])
+  }, [checkGamepad, resetGamepadState])
 }
