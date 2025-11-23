@@ -82,8 +82,8 @@ export const useGamepad = (config: GamepadConfig) => {
     // Track which gamepads are currently connected
     const currentlyConnected = new Set<number>()
     
-    // Check each gamepad slot
-    for (let i = 0; i < gamepads.length; i++) {
+    // Check each gamepad slot (up to 4 as per Gamepad API spec)
+    for (let i = 0; i < 4; i++) {
       const gamepad = gamepads[i]
       
       if (!gamepad) {
@@ -121,8 +121,13 @@ export const useGamepad = (config: GamepadConfig) => {
         lastAxisStates.current.set(i, { up: false, down: false, left: false, right: false })
       }
       
-      const lastButtonState = lastButtonStates.current.get(i)!
-      const lastAxisState = lastAxisStates.current.get(i)!
+      const lastButtonState = lastButtonStates.current.get(i)
+      const lastAxisState = lastAxisStates.current.get(i)
+      
+      // Safety check - should not happen but be defensive
+      if (!lastButtonState || !lastAxisState) {
+        continue
+      }
 
       // Check buttons for this gamepad
       gamepad.buttons.forEach((button, index) => {
