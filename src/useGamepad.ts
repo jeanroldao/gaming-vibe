@@ -36,6 +36,7 @@ export const useGamepad = (config: GamepadConfig) => {
   const configRef = useRef(config)
   const isMounted = useRef(true)
   const lastGamepadIndex = useRef<number | null>(null)
+  const hasLoggedInit = useRef(false)
 
   // Update config ref whenever config changes
   useEffect(() => {
@@ -61,9 +62,20 @@ export const useGamepad = (config: GamepadConfig) => {
     const gamepads = navigator.getGamepads()
     const gamepad = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3]
 
+    // Log initialization only once
+    if (!hasLoggedInit.current) {
+      console.log('[useGamepad] Initialization:', {
+        gamepadAPIAvailable: !!navigator.getGamepads,
+        gamepadsDetected: gamepads.filter(g => g !== null).length,
+        allGamepads: gamepads.map((g, i) => g ? { index: i, id: g.id, buttons: g.buttons.length, axes: g.axes.length } : null)
+      })
+      hasLoggedInit.current = true
+    }
+
     if (!gamepad) {
       // Reset state when no gamepad is connected
       if (lastGamepadIndex.current !== null) {
+        console.log('[useGamepad] Gamepad disconnected')
         lastGamepadIndex.current = null
         resetGamepadState()
       }
@@ -83,6 +95,13 @@ export const useGamepad = (config: GamepadConfig) => {
     
     // If gamepad index changed, reset state
     if (lastGamepadIndex.current !== currentIndex) {
+      console.log('[useGamepad] Gamepad connected/changed:', {
+        index: currentIndex,
+        id: gamepad.id,
+        buttons: gamepad.buttons.length,
+        axes: gamepad.axes.length,
+        mapping: gamepad.mapping
+      })
       lastGamepadIndex.current = currentIndex
       resetGamepadState()
     }
@@ -90,6 +109,7 @@ export const useGamepad = (config: GamepadConfig) => {
     // Initialize button state array if needed
     if (lastButtonState.current.length === 0) {
       lastButtonState.current = new Array(gamepad.buttons.length).fill(false)
+      console.log('[useGamepad] Button state initialized with', gamepad.buttons.length, 'buttons')
     }
 
     // Check buttons
@@ -99,6 +119,12 @@ export const useGamepad = (config: GamepadConfig) => {
 
       // Only trigger on button press (not on release or hold)
       if (isPressed && !wasPressed) {
+        console.log('[useGamepad] Button pressed:', {
+          index,
+          buttonName: index === BUTTON_A ? 'A' : index === BUTTON_B ? 'B' : index === BUTTON_X ? 'X' : index === BUTTON_Y ? 'Y' : index === BUTTON_START ? 'START' : index === BUTTON_SELECT ? 'SELECT' : `Button ${index}`,
+          value: button.value
+        })
+        
         switch (index) {
           case BUTTON_A:
             configRef.current.onA?.()
@@ -132,15 +158,31 @@ export const useGamepad = (config: GamepadConfig) => {
 
     // Trigger on state change from not pressed to pressed
     if (dpadUp && !lastAxisState.current.up) {
+      console.log('[useGamepad] D-pad/Stick UP', { 
+        dpadButton: gamepad.buttons[12]?.pressed, 
+        axisValue: gamepad.axes[1] 
+      })
       configRef.current.onUp?.()
     }
     if (dpadDown && !lastAxisState.current.down) {
+      console.log('[useGamepad] D-pad/Stick DOWN', { 
+        dpadButton: gamepad.buttons[13]?.pressed, 
+        axisValue: gamepad.axes[1] 
+      })
       configRef.current.onDown?.()
     }
     if (dpadLeft && !lastAxisState.current.left) {
+      console.log('[useGamepad] D-pad/Stick LEFT', { 
+        dpadButton: gamepad.buttons[14]?.pressed, 
+        axisValue: gamepad.axes[0] 
+      })
       configRef.current.onLeft?.()
     }
     if (dpadRight && !lastAxisState.current.right) {
+      console.log('[useGamepad] D-pad/Stick RIGHT', { 
+        dpadButton: gamepad.buttons[15]?.pressed, 
+        axisValue: gamepad.axes[0] 
+      })
       configRef.current.onRight?.()
     }
 
@@ -156,10 +198,21 @@ export const useGamepad = (config: GamepadConfig) => {
 
   useEffect(() => {
     isMounted.current = true
+    console.log('[useGamepad] Hook mounted, starting gamepad polling')
     
     // Handle gamepad connection/disconnection events
-    const handleGamepadEvent = () => {
+    const handleGamepadEvent = (event: GamepadEvent) => {
+      console.log('[useGamepad] Gamepad event:', event.type, {
+        gamepad: event.gamepad ? {
+          id: event.gamepad.id,
+          index: event.gamepad.index,
+          buttons: event.gamepad.buttons.length,
+          axes: event.gamepad.axes.length,
+          mapping: event.gamepad.mapping
+        } : null
+      })
       resetGamepadState()
+      hasLoggedInit.current = false // Reset to log new gamepad info
     }
     
     window.addEventListener('gamepadconnected', handleGamepadEvent)
@@ -169,6 +222,7 @@ export const useGamepad = (config: GamepadConfig) => {
     animationFrameId.current = requestAnimationFrame(checkGamepad)
 
     return () => {
+      console.log('[useGamepad] Hook unmounting, stopping gamepad polling')
       isMounted.current = false
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
