@@ -24,6 +24,19 @@ const BUTTON_SELECT = 8
 // Threshold for analog stick to register as pressed
 const STICK_THRESHOLD = 0.5
 
+// Helper function to get button name for logging
+const getButtonName = (index: number): string => {
+  const buttonNames: Record<number, string> = {
+    [BUTTON_A]: 'A',
+    [BUTTON_B]: 'B',
+    [BUTTON_X]: 'X',
+    [BUTTON_Y]: 'Y',
+    [BUTTON_START]: 'START',
+    [BUTTON_SELECT]: 'SELECT'
+  }
+  return buttonNames[index] || `Button ${index}`
+}
+
 export const useGamepad = (config: GamepadConfig) => {
   const lastButtonState = useRef<boolean[]>([])
   const lastAxisState = useRef<{ up: boolean; down: boolean; left: boolean; right: boolean }>({
@@ -121,7 +134,7 @@ export const useGamepad = (config: GamepadConfig) => {
       if (isPressed && !wasPressed) {
         console.log('[useGamepad] Button pressed:', {
           index,
-          buttonName: index === BUTTON_A ? 'A' : index === BUTTON_B ? 'B' : index === BUTTON_X ? 'X' : index === BUTTON_Y ? 'Y' : index === BUTTON_START ? 'START' : index === BUTTON_SELECT ? 'SELECT' : `Button ${index}`,
+          buttonName: getButtonName(index),
           value: button.value
         })
         
@@ -198,6 +211,8 @@ export const useGamepad = (config: GamepadConfig) => {
 
   useEffect(() => {
     isMounted.current = true
+    // NOTE: Console logging is intentionally verbose to help users debug gamepad issues
+    // Users can filter logs by searching for '[useGamepad]' in the console
     console.log('[useGamepad] Hook mounted, starting gamepad polling')
     
     // Handle gamepad connection/disconnection events
