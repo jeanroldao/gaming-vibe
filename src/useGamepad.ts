@@ -1,5 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react'
 
+// NOTE: This hook includes extensive console logging to help debug gamepad issues.
+// This is intentional to assist users in troubleshooting Xbox controller problems
+// on Chrome/Windows 11. Users can filter logs by searching for '[useGamepad]' in the console.
+
 export interface GamepadConfig {
   onUp?: () => void
   onDown?: () => void

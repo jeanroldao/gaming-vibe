@@ -55,6 +55,7 @@ function App() {
   }, [])
 
   // Check for gamepad connection
+  // NOTE: Includes console logging to help debug gamepad issues on Chrome/Windows 11
   useEffect(() => {
     const checkGamepadConnection = () => {
       const gamepads = navigator.getGamepads()
