@@ -334,6 +334,10 @@ function App() {
         </div>
       )}
 
+      <div className="build-info">
+        <p>Last updated: {new Date(__BUILD_TIMESTAMP__).toLocaleString()}</p>
+      </div>
+
       <OnScreenKeyboard
         visible={keyboardVisible}
         onInput={(char) => setInputValue(prev => prev + char)}
