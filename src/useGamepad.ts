@@ -34,6 +34,7 @@ export const useGamepad = (config: GamepadConfig) => {
   })
   const animationFrameId = useRef<number | undefined>(undefined)
   const configRef = useRef(config)
+  const isMounted = useRef(true)
 
   // Update config ref whenever config changes
   useEffect(() => {
@@ -47,7 +48,9 @@ export const useGamepad = (config: GamepadConfig) => {
     if (!gamepad) {
       // If no gamepad, check again in 500ms instead of every frame
       setTimeout(() => {
-        animationFrameId.current = requestAnimationFrame(checkGamepad)
+        if (isMounted.current) {
+          animationFrameId.current = requestAnimationFrame(checkGamepad)
+        }
       }, 500)
       return
     }
@@ -120,9 +123,11 @@ export const useGamepad = (config: GamepadConfig) => {
   }, [])
 
   useEffect(() => {
+    isMounted.current = true
     animationFrameId.current = requestAnimationFrame(checkGamepad)
 
     return () => {
+      isMounted.current = false
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
       }
