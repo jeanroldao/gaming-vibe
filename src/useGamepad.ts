@@ -73,7 +73,13 @@ export const useGamepad = (config: GamepadConfig) => {
     }
 
     // Find the current gamepad index
-    const currentIndex = gamepads.indexOf(gamepad)
+    let currentIndex = -1
+    for (let i = 0; i < gamepads.length; i++) {
+      if (gamepads[i] === gamepad) {
+        currentIndex = i
+        break
+      }
+    }
     
     // If gamepad index changed, reset state
     if (lastGamepadIndex.current !== currentIndex) {
@@ -152,16 +158,12 @@ export const useGamepad = (config: GamepadConfig) => {
     isMounted.current = true
     
     // Handle gamepad connection/disconnection events
-    const handleGamepadConnected = () => {
+    const handleGamepadEvent = () => {
       resetGamepadState()
     }
     
-    const handleGamepadDisconnected = () => {
-      resetGamepadState()
-    }
-    
-    window.addEventListener('gamepadconnected', handleGamepadConnected)
-    window.addEventListener('gamepaddisconnected', handleGamepadDisconnected)
+    window.addEventListener('gamepadconnected', handleGamepadEvent)
+    window.addEventListener('gamepaddisconnected', handleGamepadEvent)
     
     // Start polling
     animationFrameId.current = requestAnimationFrame(checkGamepad)
@@ -171,8 +173,8 @@ export const useGamepad = (config: GamepadConfig) => {
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
       }
-      window.removeEventListener('gamepadconnected', handleGamepadConnected)
-      window.removeEventListener('gamepaddisconnected', handleGamepadDisconnected)
+      window.removeEventListener('gamepadconnected', handleGamepadEvent)
+      window.removeEventListener('gamepaddisconnected', handleGamepadEvent)
     }
   }, [checkGamepad, resetGamepadState])
 }
