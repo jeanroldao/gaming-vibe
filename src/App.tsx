@@ -55,23 +55,47 @@ function App() {
   }, [])
 
   // Check for gamepad connection
+  // NOTE: Includes console logging to help debug gamepad issues on Chrome/Windows 11
   useEffect(() => {
     const checkGamepadConnection = () => {
       const gamepads = navigator.getGamepads()
       const connected = gamepads.some(gp => gp !== null)
+      const gamepadList = gamepads.filter(gp => gp !== null).map(gp => ({ id: gp?.id, index: gp?.index }))
+      
+      console.log('[App] Checking gamepad connection:', { 
+        connected, 
+        gamepads: gamepadList 
+      })
       setHasGamepad(connected)
     }
 
+    console.log('[App] Starting gamepad connection check')
     checkGamepadConnection()
     const interval = setInterval(checkGamepadConnection, 1000)
 
-    window.addEventListener('gamepadconnected', checkGamepadConnection)
-    window.addEventListener('gamepaddisconnected', checkGamepadConnection)
+    const handleGamepadConnected = (event: GamepadEvent) => {
+      console.log('[App] gamepadconnected event:', { 
+        id: event.gamepad.id, 
+        index: event.gamepad.index 
+      })
+      checkGamepadConnection()
+    }
+    
+    const handleGamepadDisconnected = (event: GamepadEvent) => {
+      console.log('[App] gamepaddisconnected event:', { 
+        id: event.gamepad.id, 
+        index: event.gamepad.index 
+      })
+      checkGamepadConnection()
+    }
+
+    window.addEventListener('gamepadconnected', handleGamepadConnected)
+    window.addEventListener('gamepaddisconnected', handleGamepadDisconnected)
 
     return () => {
       clearInterval(interval)
-      window.removeEventListener('gamepadconnected', checkGamepadConnection)
-      window.removeEventListener('gamepaddisconnected', checkGamepadConnection)
+      window.removeEventListener('gamepadconnected', handleGamepadConnected)
+      window.removeEventListener('gamepaddisconnected', handleGamepadDisconnected)
     }
   }, [])
 

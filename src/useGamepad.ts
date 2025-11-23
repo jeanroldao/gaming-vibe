@@ -1,5 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react'
 
+// NOTE: This hook includes extensive console logging to help debug gamepad issues.
+// This is intentional to assist users in troubleshooting Xbox controller problems
+// on Chrome/Windows 11. Users can filter logs by searching for '[useGamepad]' in the console.
+
 export interface GamepadConfig {
   onUp?: () => void
   onDown?: () => void
@@ -24,6 +28,19 @@ const BUTTON_SELECT = 8
 // Threshold for analog stick to register as pressed
 const STICK_THRESHOLD = 0.5
 
+// Helper function to get button name for logging
+const getButtonName = (index: number): string => {
+  const buttonNames: Record<number, string> = {
+    [BUTTON_A]: 'A',
+    [BUTTON_B]: 'B',
+    [BUTTON_X]: 'X',
+    [BUTTON_Y]: 'Y',
+    [BUTTON_START]: 'START',
+    [BUTTON_SELECT]: 'SELECT'
+  }
+  return buttonNames[index] || `Button ${index}`
+}
+
 export const useGamepad = (config: GamepadConfig) => {
   const lastButtonState = useRef<boolean[]>([])
   const lastAxisState = useRef<{ up: boolean; down: boolean; left: boolean; right: boolean }>({
@@ -36,6 +53,7 @@ export const useGamepad = (config: GamepadConfig) => {
   const configRef = useRef(config)
   const isMounted = useRef(true)
   const lastGamepadIndex = useRef<number | null>(null)
+  const hasLoggedInit = useRef(false)
 
   // Update config ref whenever config changes
   useEffect(() => {
@@ -61,9 +79,20 @@ export const useGamepad = (config: GamepadConfig) => {
     const gamepads = navigator.getGamepads()
     const gamepad = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3]
 
+    // Log initialization only once
+    if (!hasLoggedInit.current) {
+      console.log('[useGamepad] Initialization:', {
+        gamepadAPIAvailable: !!navigator.getGamepads,
+        gamepadsDetected: gamepads.filter(g => g !== null).length,
+        allGamepads: gamepads.map((g, i) => g ? { index: i, id: g.id, buttons: g.buttons.length, axes: g.axes.length } : null)
+      })
+      hasLoggedInit.current = true
+    }
+
     if (!gamepad) {
       // Reset state when no gamepad is connected
       if (lastGamepadIndex.current !== null) {
+        console.log('[useGamepad] Gamepad disconnected')
         lastGamepadIndex.current = null
         resetGamepadState()
       }
@@ -83,6 +112,13 @@ export const useGamepad = (config: GamepadConfig) => {
     
     // If gamepad index changed, reset state
     if (lastGamepadIndex.current !== currentIndex) {
+      console.log('[useGamepad] Gamepad connected/changed:', {
+        index: currentIndex,
+        id: gamepad.id,
+        buttons: gamepad.buttons.length,
+        axes: gamepad.axes.length,
+        mapping: gamepad.mapping
+      })
       lastGamepadIndex.current = currentIndex
       resetGamepadState()
     }
@@ -90,6 +126,7 @@ export const useGamepad = (config: GamepadConfig) => {
     // Initialize button state array if needed
     if (lastButtonState.current.length === 0) {
       lastButtonState.current = new Array(gamepad.buttons.length).fill(false)
+      console.log('[useGamepad] Button state initialized with', gamepad.buttons.length, 'buttons')
     }
 
     // Check buttons
@@ -99,6 +136,12 @@ export const useGamepad = (config: GamepadConfig) => {
 
       // Only trigger on button press (not on release or hold)
       if (isPressed && !wasPressed) {
+        console.log('[useGamepad] Button pressed:', {
+          index,
+          buttonName: getButtonName(index),
+          value: button.value
+        })
+        
         switch (index) {
           case BUTTON_A:
             configRef.current.onA?.()
@@ -132,15 +175,31 @@ export const useGamepad = (config: GamepadConfig) => {
 
     // Trigger on state change from not pressed to pressed
     if (dpadUp && !lastAxisState.current.up) {
+      console.log('[useGamepad] D-pad/Stick UP', { 
+        dpadButton: gamepad.buttons[12]?.pressed, 
+        axisValue: gamepad.axes[1] 
+      })
       configRef.current.onUp?.()
     }
     if (dpadDown && !lastAxisState.current.down) {
+      console.log('[useGamepad] D-pad/Stick DOWN', { 
+        dpadButton: gamepad.buttons[13]?.pressed, 
+        axisValue: gamepad.axes[1] 
+      })
       configRef.current.onDown?.()
     }
     if (dpadLeft && !lastAxisState.current.left) {
+      console.log('[useGamepad] D-pad/Stick LEFT', { 
+        dpadButton: gamepad.buttons[14]?.pressed, 
+        axisValue: gamepad.axes[0] 
+      })
       configRef.current.onLeft?.()
     }
     if (dpadRight && !lastAxisState.current.right) {
+      console.log('[useGamepad] D-pad/Stick RIGHT', { 
+        dpadButton: gamepad.buttons[15]?.pressed, 
+        axisValue: gamepad.axes[0] 
+      })
       configRef.current.onRight?.()
     }
 
@@ -156,10 +215,23 @@ export const useGamepad = (config: GamepadConfig) => {
 
   useEffect(() => {
     isMounted.current = true
+    // NOTE: Console logging is intentionally verbose to help users debug gamepad issues
+    // Users can filter logs by searching for '[useGamepad]' in the console
+    console.log('[useGamepad] Hook mounted, starting gamepad polling')
     
     // Handle gamepad connection/disconnection events
-    const handleGamepadEvent = () => {
+    const handleGamepadEvent = (event: GamepadEvent) => {
+      console.log('[useGamepad] Gamepad event:', event.type, {
+        gamepad: event.gamepad ? {
+          id: event.gamepad.id,
+          index: event.gamepad.index,
+          buttons: event.gamepad.buttons.length,
+          axes: event.gamepad.axes.length,
+          mapping: event.gamepad.mapping
+        } : null
+      })
       resetGamepadState()
+      hasLoggedInit.current = false // Reset to log new gamepad info
     }
     
     window.addEventListener('gamepadconnected', handleGamepadEvent)
@@ -169,6 +241,7 @@ export const useGamepad = (config: GamepadConfig) => {
     animationFrameId.current = requestAnimationFrame(checkGamepad)
 
     return () => {
+      console.log('[useGamepad] Hook unmounting, stopping gamepad polling')
       isMounted.current = false
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
