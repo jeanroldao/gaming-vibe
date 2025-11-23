@@ -33,6 +33,13 @@ export const useGamepad = (config: GamepadConfig) => {
     right: false
   })
   const animationFrameId = useRef<number | undefined>(undefined)
+  const configRef = useRef(config)
+  const isMounted = useRef(true)
+
+  // Update config ref whenever config changes
+  useEffect(() => {
+    configRef.current = config
+  }, [config])
 
   const checkGamepad = useCallback(() => {
     const gamepads = navigator.getGamepads()
@@ -41,7 +48,7 @@ export const useGamepad = (config: GamepadConfig) => {
     if (!gamepad) {
       // If no gamepad, check again in 500ms instead of every frame
       setTimeout(() => {
-        if (animationFrameId.current !== undefined) {
+        if (isMounted.current) {
           animationFrameId.current = requestAnimationFrame(checkGamepad)
         }
       }, 500)
@@ -62,22 +69,22 @@ export const useGamepad = (config: GamepadConfig) => {
       if (isPressed && !wasPressed) {
         switch (index) {
           case BUTTON_A:
-            config.onA?.()
+            configRef.current.onA?.()
             break
           case BUTTON_B:
-            config.onB?.()
+            configRef.current.onB?.()
             break
           case BUTTON_X:
-            config.onX?.()
+            configRef.current.onX?.()
             break
           case BUTTON_Y:
-            config.onY?.()
+            configRef.current.onY?.()
             break
           case BUTTON_START:
-            config.onStart?.()
+            configRef.current.onStart?.()
             break
           case BUTTON_SELECT:
-            config.onSelect?.()
+            configRef.current.onSelect?.()
             break
         }
       }
@@ -93,16 +100,16 @@ export const useGamepad = (config: GamepadConfig) => {
 
     // Trigger on state change from not pressed to pressed
     if (dpadUp && !lastAxisState.current.up) {
-      config.onUp?.()
+      configRef.current.onUp?.()
     }
     if (dpadDown && !lastAxisState.current.down) {
-      config.onDown?.()
+      configRef.current.onDown?.()
     }
     if (dpadLeft && !lastAxisState.current.left) {
-      config.onLeft?.()
+      configRef.current.onLeft?.()
     }
     if (dpadRight && !lastAxisState.current.right) {
-      config.onRight?.()
+      configRef.current.onRight?.()
     }
 
     lastAxisState.current = {
@@ -113,12 +120,14 @@ export const useGamepad = (config: GamepadConfig) => {
     }
 
     animationFrameId.current = requestAnimationFrame(checkGamepad)
-  }, [config])
+  }, [])
 
   useEffect(() => {
+    isMounted.current = true
     animationFrameId.current = requestAnimationFrame(checkGamepad)
 
     return () => {
+      isMounted.current = false
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
       }
