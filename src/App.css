@@ -166,6 +166,19 @@ h1 {
   font-size: 0.9rem;
 }
 
+.build-info {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+  color: #666;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.build-info p {
+  margin: 0;
+}
+
 @media (prefers-color-scheme: light) {
   .game-item {
     background-color: #f5f5f5;
@@ -181,6 +194,11 @@ h1 {
   
   .stats {
     border-top-color: #ddd;
+  }
+  
+  .build-info {
+    border-top-color: #ddd;
+    color: #999;
   }
   
   .current-file-name {
