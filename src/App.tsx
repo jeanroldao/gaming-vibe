@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { uuidv7 } from 'uuidv7'
 import './App.css'
 import type { Game } from './types'
@@ -21,13 +21,51 @@ function App() {
   const [keyboardVisible, setKeyboardVisible] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [hasGamepad, setHasGamepad] = useState(false)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Sort games to display unfinished games first, finished games last
-  const sortedGames = useMemo(() => {
-    return [...games].sort((a, b) => Number(a.completed) - Number(b.completed))
-  }, [games])
+  const handleDragStart = useCallback((index: number, e: React.DragEvent) => {
+    setDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+    // Style the drag image
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.classList.add('dragging')
+    }
+  }, [])
+
+  const handleDragOver = useCallback((index: number, e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }, [])
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null)
+    setDragOverIndex(null)
+    // Remove dragging class from all items
+    document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'))
+  }, [])
+
+  const handleDrop = useCallback((targetIndex: number, e: React.DragEvent) => {
+    e.preventDefault()
+    const sourceIndex = dragIndex
+    if (sourceIndex === null || sourceIndex === targetIndex) {
+      handleDragEnd()
+      return
+    }
+
+    setGames(prev => {
+      const updated = [...prev]
+      const [moved] = updated.splice(sourceIndex, 1)
+      updated.splice(targetIndex, 0, moved)
+      return updated
+    })
+
+    handleDragEnd()
+  }, [dragIndex, handleDragEnd])
 
   // Helper function to update the file name display
   const updateFileNameDisplay = async () => {
@@ -224,7 +262,7 @@ function App() {
         index++
         
         // Game items (checkbox and delete)
-        for (const game of sortedGames) {
+        for (const game of games) {
           if (index === focusedIndex) {
             toggleGame(game.id)
             return
@@ -274,7 +312,7 @@ function App() {
     const gameCheckboxes = document.querySelectorAll('.game-checkbox')
     const deleteButtons = document.querySelectorAll('.delete-button')
     
-    sortedGames.forEach((_, i) => {
+    games.forEach((_, i) => {
       if (gameCheckboxes[i]) elements.push(gameCheckboxes[i] as HTMLElement)
       if (deleteButtons[i]) elements.push(deleteButtons[i] as HTMLElement)
     })
@@ -287,7 +325,7 @@ function App() {
         el.classList.remove('gamepad-focused')
       }
     })
-  }, [focusedIndex, fileSupported, sortedGames])
+  }, [focusedIndex, fileSupported, games])
 
   return (
     <div className={`app ${hasGamepad ? 'gamepad-mode' : ''}`}>
@@ -335,8 +373,18 @@ function App() {
         {games.length === 0 ? (
           <p className="empty-message">No games yet. Add your first game above!</p>
         ) : (
-          sortedGames.map(game => (
-            <div key={game.id} className={`game-item ${game.completed ? 'completed' : ''}`}>
+          games.map((game, index) => (
+            <div
+              key={game.id}
+              className={`game-item ${game.completed ? 'completed' : ''}${dragIndex === index ? ' dragging' : ''}${dragOverIndex === index && dragIndex !== index ? ' drag-over' : ''}`}
+              draggable
+              onDragStart={(e) => handleDragStart(index, e)}
+              onDragOver={(e) => handleDragOver(index, e)}
+              onDragEnd={handleDragEnd}
+              onDrop={(e) => handleDrop(index, e)}
+              onDragLeave={() => setDragOverIndex(null)}
+            >
+              <span className="drag-handle" title="Drag to reorder">⠿</span>
               <input
                 type="checkbox"
                 checked={game.completed}

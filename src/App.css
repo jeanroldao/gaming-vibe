@@ -113,17 +113,45 @@ h1 {
   margin-bottom: 0.75rem;
   background-color: #1a1a1a;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   text-align: left;
+  user-select: none;
 }
 
 .game-item:hover {
   background-color: #2a2a2a;
-  transform: translateX(5px);
 }
 
 .game-item.completed {
   opacity: 0.6;
+}
+
+.game-item.dragging {
+  opacity: 0.4;
+  border: 2px dashed #646cff;
+}
+
+.game-item.drag-over {
+  border-top: 3px solid #646cff;
+  margin-top: -3px;
+}
+
+.drag-handle {
+  cursor: grab;
+  font-size: 1.2rem;
+  color: #555;
+  padding: 0 0.25rem;
+  line-height: 1;
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+
+.drag-handle:hover {
+  color: #646cff;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .game-item.completed .game-title {
@@ -183,27 +211,31 @@ h1 {
   .game-item {
     background-color: #f5f5f5;
   }
-  
+
   .game-item:hover {
     background-color: #e0e0e0;
   }
-  
+
   .game-input {
     border-color: #646cff;
   }
-  
+
   .stats {
     border-top-color: #ddd;
   }
-  
+
   .build-info {
     border-top-color: #ddd;
     color: #999;
   }
-  
+
   .current-file-name {
     background-color: #e0e0e0;
     color: #666;
+  }
+
+  .drag-handle {
+    color: #999;
   }
 }
 
