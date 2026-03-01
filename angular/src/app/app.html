@@ -1,0 +1,12 @@
+<div class="container">
+  <h1>{{ title() }}</h1>
+  <input [(ngModel)]="inputValue" placeholder="Add game" />
+  <button (click)="addGame()">Add</button>
+  <ul>
+    <li *ngFor="let game of games">
+      <input type="checkbox" [checked]="game.completed" (change)="toggleGame(game.id)" />
+      <span [class.completed]="game.completed">{{ game.title }}</span>
+      <button (click)="deleteGame(game.id)">Delete</button>
+    </li>
+  </ul>
+</div>
