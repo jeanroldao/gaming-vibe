@@ -1,0 +1,12 @@
+{
+  "name": "angularjs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "http-server ."
+  },
+  "dependencies": {
+    "angular": "^1.8.2",
+    "angular-ui-router": "^1.0.26"
+  }
+}
