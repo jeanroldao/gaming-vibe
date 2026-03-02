@@ -23,6 +23,10 @@ function App() {
   const [hasGamepad, setHasGamepad] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [nightMode, setNightMode] = useState(() => {
+    const saved = localStorage.getItem('nightMode')
+    return saved !== null ? saved === 'true' : true
+  })
   const saveTimeoutRef = useRef<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -72,6 +76,11 @@ function App() {
     const fileName = await getCurrentFileName()
     setCurrentFileName(fileName)
   }
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = nightMode ? 'dark' : 'light'
+    localStorage.setItem('nightMode', String(nightMode))
+  }, [nightMode])
 
   // Check File System Access API support on mount
   useEffect(() => {
@@ -329,6 +338,13 @@ function App() {
 
   return (
     <div className={`app ${hasGamepad ? 'gamepad-mode' : ''}`}>
+      <button
+        className="night-mode-toggle"
+        onClick={() => setNightMode(prev => !prev)}
+        title={nightMode ? 'Switch to light mode' : 'Switch to night mode'}
+      >
+        {nightMode ? '☀️' : '🌙'}
+      </button>
       {hasGamepad && (
         <div className="controller-hint">
           🎮 Controller detected! Use D-Pad to navigate, A to select, X to type, B to cancel
